@@ -1,0 +1,28 @@
+create a new project at google developers console, https://console.developers.google.com/project.
+
+enable the APIs needed and in the credentials section, create a new ID with an installed application.
+Download the JSON.
+
+Use the example code of Gmail API at https://developers.google.com/gmail/api/quickstart/quickstart-python#step_1_enable_the_gmail_api
+
+to start the first steps with the APIs technology.
+don't forget to change the CLIENT_SECRET_FILE variable provided to the path where you stored the JSON with the secret of you Google client ID.
+
+
+easy_install:
+--upgrade google-api-python-client
+oauth2client
+python-gflags
+python-twitter
+facebook-sdk
+
+APIs:
+Calendar
+Drive
+Facebook
+Gmail
+
+INSTALL:
+python 2.7.9
+mongodb
+pymongo
