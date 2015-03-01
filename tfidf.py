@@ -1,50 +1,157 @@
-from __future__ import division, unicode_literals
-import math
+en_stopwords = [‘a’,’about’,’above’,’across’,’after’,’afterwards’,’again’,’against’,’all’,
+                ’almost’,’alone’,’along’,’already’,’also’,’although’,’always’,’am’,’among’,
+                ’amongst’,’amoungst’,’amount’,’an’,’and’,’another’,’any’,’anyhow’,’anyone’,
+                ’anything’,’anyway’,’anywhere’,’are’,’around’,’as’,’at’,’back’,’be’,’became’,
+                ’because’,’become’,’becomes’,’becoming’,’been’,’before’,’beforehand’,’behind’,
+                ’being’,’below’,’beside’,’besides’,’between’,’beyond’,’bill’,’both’,’bottom’,
+                ’but’,’by’,’call’,’can’,’cannot’,’cant’,’co’,’computer’,’con’,’could’,’couldnt’,
+                ’cry’,’de’,’describe’,’detail’,’do’,’done’,’down’,’due’,’during’,’each’,’eg’,
+                ’eight’,’either’,’eleven’,’else’,’elsewhere’,’empty’,’enough’,’etc’,’even’,
+                ’ever’,’every’,’everyone’,’everything’,’everywhere’,’except’,’few’,’fifteen’,
+                ’fify’,’fill’,’find’,’fire’,’first’,’five’,’for’,’former’,’formerly’,’forty’,
+                ’found’,’four’,’from’,’front’,’full’,’further’,’get’,’give’,’go’,’had’,’has’,
+                ’hasnt’,’have’,’he’,’hence’,’her’,’here’,’hereafter’,’hereby’,’herein’,
+                ’hereupon’,’hers’,’him’,’his’,’how’,’however’,’hundred’,’i’,’ie’,’if’,’in’,
+                ’inc’,’indeed’,’interest’,’into’,’is’,’it’,’its’,’keep’,’last’,’latter’,
+                ’latterly’,’least’,’less’,’ltd’,’made’,’many’,’may’,’me’,’meanwhile’,’might’,
+                ’mill’,’mine’,’more’,’moreover’,’most’,’mostly’,’move’,’much’,’must’,’my’,
+                ’name’,’namely’,’neither’,’never’,’nevertheless’,’next’,’nine’,’no’,’nobody’,
+                ’none’,’noone’,’nor’,’not’,’nothing’,’now’,’nowhere’,’of’,’off’,’often’,’on’,
+                ’once’,’one’,’only’,’onto’,’or’,’other’,’others’,’otherwise’,’our’,’ours’,
+                ’ourselves’,’out’,’over’,’own’,’part’,’per’,’perhaps’,’please’,’put’,’rather’,
+                ’re’,’same’,’see’,’seem’,’seemed’,’seeming’,’seems’,’serious’,’several’,’she’,
+                ’should’,’show’,’side’,’since’,’sincere’,’six’,’sixty’,’so’,’some’,’somehow’,
+                ’someone’,’something’,’sometime’,’sometimes’,’somewhere’,’still’,’such’,
+                ’system’,’take’,’ten’,’than’,’that’,’the’,’their’,’them’,’themselves’,’then’,
+                ’thence’,’there’,’thereafter’,’thereby’,’therefore’,’therein’,’thereupon’,
+                ’these’,’they’,’thick’,’thin’,’third’,’this’,’those’,’though’,’three’,’through’,
+                ’throughout’,’thru’,’thus’,’to’,’together’,’too’,’top’,’toward’,’towards’,
+                ’twelve’,’twenty’,’two’,’un’,’under’,’until’,’up’,’upon’,’us’,’very’,’via’,
+                ’was’,’we’,’well’,’were’,’what’,’whatever’,’when’,’whence’,’whenever’,’where’,
+                ’whereafter’,’whereas’,’whereby’,’wherein’,’whereupon’,’wherever’,’whether’,
+                ’which’,’while’,’whither’,’who’,’whoever’,’whole’,’whom’,’whose’,’why’,’will’,
+                ’with’,’within’,’without’,’would’,’yet’,’you’,’your’,’yours’,’yourself’,’yourselves’
+]
 
-from textblob import TextBlob as tb
 
+pt_stopwords = [’a’,’à’,’acordo’,’agora’,’ainda’,’além’,’algumas’,’alguns’,’altura’,’ano’,’anos’,
+                ’antes’,’antónio’,’ao’,’aos’,’apenas’,’apesar’,’apoio’,’após’,’aqui’,’área’,’as’,
+                ’às’,’assim’,’associação’,’até’,’através’,’banco’,’bem’,’cada’,’câmara’,’capital’,
+                ’carlos’,’casa’,’caso’,’causa’,’cento’,’centro’,’cerca’,’cidade’,’cinco’,’com’,
+                ’comissão’,’como’,’conselho’,’conta’,’contos’,’contra’,’cultura’,’da’,’dar’,’das’,
+                ’de’,’decisão’,’depois’,’desde’,’desta’,’deste’,’dia’,’dias’,’direcção’,’disse’,’diz’,
+                ’dizer’,’do’,’dois’,’dos’,’duas’,’durante’,’e’,’é’,’economia’,’ele’,’eleições’,’eles’,
+                ’em’,’embora’,’empresa’,’empresas’,’enquanto’,’entanto’,’então’,’entre’,’equipa’,
+                ’era’,’essa’,’esse’,’esta’,’está’,’estado’,’estados’,’estão’,’estar’,’estava’,’este’,
+                ’estes’,’eu’,’europa’,’europeia’,’exemplo’,’facto’,’falta’,’faz’,’fazer’,’fernando’,
+                ’fez’,’fim’,’final’,’foi’,’fora’,’foram’,’forma’,’frente’,’geral’,’governo’,’grande’,
+                ’grandes’,’grupo’,’guerra’,’há’,’história’,’hoje’,’homem’,’início’,’internacional’,
+                ’isso’,’isto’,’já’,’joão’,’jogo’,’jorge’,’josé’,’lá’,’lado’,’lei’,’lhe’,’lisboa’,
+                ’local’,’lugar’,’maior’,’maioria’,’mais’,’manuel’,’mas’,’me’,’meio’,’melhor’,’menos’,
+                ’mercado’,’mês’,’meses’,’mesma’,’mesmo’,’mil’,’milhões’,’ministério’,’ministro’,
+                ’momento’,’muito’,’muitos’,’mundo’,’música’,’na’,’nacional’,’nada’,’não’,’nas’,’nem’,
+                ’neste’,’no’,’noite’,’nome’,’nos’,’nova’,’novo’,’num’,’numa’,’número’,’nunca’,’o’,
+                ’obras’,’onde’,’ontem’,’os’,’ou’,’outra’,’outras’,’outro’,’outros’,’p.’,’país’,’países’,
+                ’para’,’parece’,’parte’,’partido’,’partir’,’passado’,’pela’,’pelas’,’pelo’,’pelos’,
+                ’pessoas’,’pode’,’poder’,’poderá’,’polícia’,’política’,’pontos’,’por’,’porque’,’porto’,
+                ’portugal’,’português’,’portuguesa’,’portugueses’,’possível’,’pouco’,’presidente’,
+                ’primeira’,’primeiro’,’problema’,’problemas’,’processo’,’programa’,’projecto’,’próprio’,
+                ’próximo’,’ps’,’psd’,’público’,’quais’,’qual’,’qualquer’,’quando’,’quanto’,’quase’,
+                ’quatro’,’que’,’quem’,’quer’,’questão’,’r.’,’região’,’relação’,’república’,’são’,’se’,
+                ’segunda’,’segundo’,’segurança’,’seis’,’seja’,’sem’,’semana’,’sempre’,’sentido’,’ser’,
+                ’será’,’seu’,’seus’,’sido’,’silva’,’sistema’,’situação’,’só’,’sobre’,’social’,’sociedade’,
+                ’sua’,’suas’,’tal’,’também’,’tão’,’tarde’,’tem’,’têm’,’tempo’,’ter’,’terá’,’teve’,
+                ’tinha’,’toda’,’todas’,’todo’,’todos’,’trabalho’,’três’,’tudo’,’último’,’últimos’,’um’,
+                ’uma’,’vai’,’vão’,’ver’,’vez’,’vezes’,’vida’,’zona’
+]
+
+
+def delete_stopwords(doc):
+    set_en = set(en_stopwords)
+    set_pt = set(pt_stopwords)
+    en_filter = [word for word in set(doc) if word not in set_en]
+    pt_filter = [word for word in en_filter if word not in set_pt]
+    return u'[' + u','.join(u"'" + unicode(word) + u"'" for word in pt_filter) + u']'
+
+
+def freq(word, doc):
+    return doc.count(word)
  
-def tf(word, blob):
-    return blob.words.count(word) / len(blob.words)
  
-def n_containing(word, bloblist):
-    return sum(1 for blob in bloblist if word in blob)
+def word_count(doc):
+    return len(doc)
  
-def idf(word, bloblist):
-    return math.log(len(bloblist) / (1 + n_containing(word, bloblist)))
  
-def tfidf(word, blob, bloblist):
-    return tf(word, blob) * idf(word, bloblist)
+def tf(word, doc):
+    return (freq(word, doc) / float(word_count(doc)))
  
-document1 = tb("""Python is a 2000 made-for-TV horror movie directed by Richard
-Clabaugh. The film features several cult favorite actors, including William
-Zabka of The Karate Kid fame, Wil Wheaton, Casper Van Dien, Jenny McCarthy,
-Keith Coogan, Robert Englund (best known for his role as Freddy Krueger in the
-A Nightmare on Elm Street series of films), Dana Barron, David Bowe, and Sean
-Whalen. The film concerns a genetically engineered snake, a python, that
-escapes and unleashes itself on a small town. It includes the classic final
-girl scenario evident in films like Friday the 13th. It was filmed in Los Angeles,
- California and Malibu, California. Python was followed by two sequels: Python
- II (2002) and Boa vs. Python (2004), both also made-for-TV films.""")
  
-document2 = tb("""Python, from the Greek word , is a genus of 
-               nonvenomous pythons[2] found in Africa and Asia. Currently, 7 species are
-recognised.[2] A member of this genus, P. reticulatus, is among the longest
-snakes known.""")
+def num_docs_containing(word, list_of_docs):
+    count = 0
+    for document in list_of_docs:
+        if freq(word, document) > 0:
+            count += 1
+    return 1 + count
  
-document3 = tb("""The Colt Python is a .357 Magnum caliber revolver formerly
-manufactured by Colt's Manufacturing Company of Hartford, Connecticut.
-It is sometimes referred to as a "Combat Magnum".[1] It was first introduced
-in 1955, the same year as Smith & Wesson's M29 .44 Magnum. The now discontinued
-Colt Python targeted the premium revolver market segment. Some firearm
-collectors and writers such as Jeff Cooper, Ian V. Hogg, Chuck Hawks, Leroy
-Thompson, Renee Smeets and Martin Dougherty have described the Python as the
-finest production revolver ever made.""")
  
-bloblist = [document1, document2, document3]
-for i, blob in enumerate(bloblist):
-    print("Top words in document {}".format(i + 1))
-    scores = {word: tfidf(word, blob, bloblist) for word in blob.words}
-    sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    for word, score in sorted_words[:3]:
-        print("Word: {}, TF-IDF: {}".format(word, round(score, 5)))
+def idf(word, list_of_docs):
+    return math.log(len(list_of_docs) /
+            float(num_docs_containing(word, list_of_docs)))
+ 
+ 
+def tf_idf(word, doc, list_of_docs):
+    return (tf(word, doc) * idf(word, list_of_docs))
+ 
+#Compute the frequency for each term.
+vocabulary = []
+docs = {}
+all_tips = []
+for tip in (venue.tips()):
+    tokens = tokenizer.tokenize(tip.text)
+ 
+    bi_tokens = bigrams(tokens)
+    tri_tokens = trigrams(tokens)
+    tokens = [token.lower() for token in tokens if len(token) > 2]
+    tokens = [token for token in tokens if token not in stopwords]
+ 
+    bi_tokens = [' '.join(token).lower() for token in bi_tokens]
+    bi_tokens = [token for token in bi_tokens if token not in stopwords]
+ 
+    tri_tokens = [' '.join(token).lower() for token in tri_tokens]
+    tri_tokens = [token for token in tri_tokens if token not in stopwords]
+ 
+    final_tokens = []
+    final_tokens.extend(tokens)
+    final_tokens.extend(bi_tokens)
+    final_tokens.extend(tri_tokens)
+    docs[tip.text] = {'freq': {}, 'tf': {}, 'idf': {},
+                        'tf-idf': {}, 'tokens': []}
+ 
+    for token in final_tokens:
+        #The frequency computed for each tip
+        docs[tip.text]['freq'][token] = freq(token, final_tokens)
+        #The term-frequency (Normalized Frequency)
+        docs[tip.text]['tf'][token] = tf(token, final_tokens)
+        docs[tip.text]['tokens'] = final_tokens
+ 
+    vocabulary.append(final_tokens)
+ 
+for doc in docs:
+    for token in docs[doc]['tf']:
+        #The Inverse-Document-Frequency
+        docs[doc]['idf'][token] = idf(token, vocabulary)
+        #The tf-idf
+        docs[doc]['tf-idf'][token] = tf_idf(token, docs[doc]['tokens'], vocabulary)
+ 
+#Now let's find out the most relevant words by tf-idf.
+words = {}
+for doc in docs:
+    for token in docs[doc]['tf-idf']:
+        if token not in words:
+            words[token] = docs[doc]['tf-idf'][token]
+        else:
+            if docs[doc]['tf-idf'][token] > words[token]:
+                words[token] = docs[doc]['tf-idf'][token]
+ 
+for item in sorted(words.items(), key=lambda x: x[1], reverse=True):
+    print "%f <= %s" % (item[1], item[0])
