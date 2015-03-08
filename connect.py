@@ -1,24 +1,28 @@
-import dropdb
-import createdb
-
 from pymongo import MongoClient
 
-client = MongoClient('localhost', 27017)
 
-dropdb.dropDatabase(client)
+def connection():
+    # Mongo client
+    client = MongoClient('localhost', 27017)
 
-db = createdb.createDatabase(client)
+    # Drop database
+    client.drop_database('InThatDayI')
 
+    # Create new database
+    db = client['InThatDayI']
 
-calendar = db.create_collection('calendar')
-drive = db.create_collection('drive')
-contacts = db.create_collection('contacts')
-fitness = db.create_collection('fitness')
-gmail = db.create_collection('gmail')
-maps = db.create_collection('maps')
-googleMore = db.create_collection('googleMore')
-places = db.create_collection('places')
+    # Collections creation
+    totalCount = db.create_collection('counters')
+    pcUser = db.create_collection('user')
 
-fitbit = db.create_collection('fitbit')
-lastFm = db.create_collection('lastFm')
-twitter = db.create_collection('twitter')
+    # Collections to Google APIs
+    calendar = db.create_collection('calendar')
+    drive = db.create_collection('drive')
+    gmail = db.create_collection('gmail')
+    plus = db.create_collection('plus')
+
+    lastFm = db.create_collection('lastFm')
+    twitter = db.create_collection('twitter')
+    facebook = db.create_collection('facebook')
+
+    return totalCount, pcUser, calendar, drive, gmail, plus, lastFm, twitter, facebook

@@ -25,10 +25,11 @@ http = httplib2.Http()
 credentials = STORAGE.get()
 if credentials is None or credentials.invalid:
     credentials = run(flow, STORAGE, http = http)
+print credentials
 
 # Authorize the httplib2.Http object with our credentials
 http = credentials.authorize(http)
-
+print http
 # Build the Gmail service from discovery
 gmail_service = build('gmail', 'v1', http = http)
 
