@@ -18,6 +18,7 @@ import g_calendar
 import g_drive
 import g_gmail
 import g_plus
+import tfidf
 
 
 def main():
@@ -62,22 +63,15 @@ def main():
 
     while(True):
         #try:
-        gmail.extract_subjects(gmail_service, '')
-
-            #update_token(CREDENTIALS, STORAGE)
-
-            
+            #g_calendar.extract_events(calendar_service)
+            #g_drive.extract_files(drive_service)            
+        g_gmail.extract_subjects(gmail_service, '')
+            #g_plus.extract_cenas(plus_service)
 
        
-        #except:
-            # if not credentials.access_token_expired:
-            #     cena = credentials.refresh()
-            #     STORAGE.put(cena)
-
-            # http = httplib2.Http()
-            # # Authorize the httplib2.Http object with our credentials
-            # http = cena.authorize(http)
-            
+        """except:
+            print "Access token expired, wait a moment to refresh it."
+            exit()"""
 
 if __name__ == '__main__':
   main()

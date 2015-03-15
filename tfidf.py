@@ -1,3 +1,5 @@
+# -*- coding: latin-1 -*-
+
 en_stopwords = ['a','about','above','across','after','afterwards','again','against','all',
                 'almost','alone','along','already','also','although','always','am','among',
                 'amongst','amoungst','amount','an','and','another','any','anyhow','anyone',
@@ -112,8 +114,6 @@ all_tips = []
 for tip in (venue.tips()):
     tokens = tokenizer.tokenize(tip.text)
  
-    bi_tokens = bigrams(tokens)
-    tri_tokens = trigrams(tokens)
     tokens = [token.lower() for token in tokens if len(token) > 2]
     tokens = [token for token in tokens if token not in stopwords]
  
@@ -125,8 +125,6 @@ for tip in (venue.tips()):
  
     final_tokens = []
     final_tokens.extend(tokens)
-    final_tokens.extend(bi_tokens)
-    final_tokens.extend(tri_tokens)
     docs[tip.text] = {'freq': {}, 'tf': {}, 'idf': {},
                         'tf-idf': {}, 'tokens': []}
  
