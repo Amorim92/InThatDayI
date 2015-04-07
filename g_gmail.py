@@ -1,59 +1,86 @@
 from apiclient import errors
 
-# Messages IDs, subjects and dates
+
+# Messages IDs, subjects, from, to and sending dates
 messages_IDs = []
 subjects = []
 _from = [] 
 _to = []
-dates = []
+_dates = []
 
 
-def extract_subjects(service, token):
+def extract_mails(service, query, token):
 
     try:
         # Result from Gmail API call
-        mails = service.users().messages().list(userId = 'me', includeSpamTrash = True,
-                                                maxResults = 100, pageToken = token).execute()
+        mails = service.users().messages().list(userId = 'me', includeSpamTrash = True, q = query,
+                                                pageToken = token, fields = 'messages(id),nextPageToken').execute()
+
+
+        # Append the ID of each message to messages_IDs
         if mails != None:
-            # Append the ID of each message to messages_IDs
             if 'messages' in mails:
                 for message in mails['messages']:
+                    # Message ID
                     messages_IDs.append(message['id'])
 
-            page_token = mails.get('nextPageToken')
 
-            while page_token != None:
-                # Call function with page page_token
-                extract_subjects(service, page_token)
-
-            print messages_IDs
-            
-            for id in messages_IDs:
-                # Result from Gmail API call
-                mails = service.users().messages().get(userId = 'me', id = id, format = 'metadata',
-                                                       metadataHeaders = ['From', 'To', 'Subject', 'Date'],
-                                                       fields = 'payload').execute()
-
-                # Append the subject and date of each message to subjects and dates
-                if 'payload' in mails:
-                    if 'headers' in mails['payload']:
-                        for header in mails['payload']['headers']:
-                            if header['name'] == 'Subject':
-                                subjects.append(header['value'].encode('utf-8'))
-                                print subjects
-                            if header['name'] == 'Date':
-                                dates.append(header['value'])
-                                print header['value']
-                            if header['name'] == 'From':
-                                _from.append(header['value'])
-                                print header['value']
-                            if header['name'] == 'To':
-                                _to.append(header['value'])
-                                print header['value']
+            # Call function with page page_token
+            if 'nextPageToken' in mails:
+                token = mails['nextPageToken']
+                extract_mails(service, query, token)
 
         else:
-            print "Bad mails to Gmail API service."
+            print "Bad request to Gmail API service or there's no e-mails in your Gmail Account."
+            return
 
+
+        # Get data of each message ID
+        for id in messages_IDs:
+            # Result from Gmail API call
+            messages = service.users().messages().get(userId = 'me', id = id, format = 'metadata',
+                                                      metadataHeaders = ['From', 'To', 'Subject', 'Date'],
+                                                      fields = 'payload').execute()
+
+
+            # Append data of each message to the correspondent array
+            if messages != None:
+                if 'payload' in messages:
+                    if 'headers' in messages['payload']:
+                        for header in messages['payload']['headers']:
+                            # Subject
+                            if header['name'] == 'Subject':
+                                subjects.append(header['value'].encode('utf8'))
+                            else:
+                                subjects.append('')
+
+                            # Date
+                            if header['name'] == 'Date':
+                                _dates.append(header['value'][5:-6])
+                            else:
+                                _dates.append('')
+                                #print header['value']
+
+                            # From
+                            if header['name'] == 'From':
+                                _from.append(header['value'].encode('utf8'))
+                            else:
+                                _from.append('')
+                                #print header['value']
+
+                            # To
+                            if header['name'] == 'To':
+                                _to.append(header['value'].encode('utf8'))
+                            else:
+                                _to.append('')
+                                #print header['value']
+
+            else:
+                print "Bad request to Gmail API service or there's no messages in your messages ID's list."
+                return
+
+        return messages_IDs, subjects, _dates, _from, _to
+        
     except errors.HttpError, error:
         print 'An error occurred: %s' % error
         

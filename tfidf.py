@@ -69,28 +69,43 @@ pt_stopwords = ['a','à','acordo','agora','ainda','além','algumas','alguns','al
 
 
 def delete_stopwords(doc):
+    # Split sentences in a list
+    split_doc = doc.split()
     words_list = []
+
+    # Sets because its faster
     set_en = set(en_stopwords)
     set_pt = set(pt_stopwords)
-    en_filter = [word for word in set(doc) if word not in set_en]
+
+    # Filter the list of words
+    en_filter = [word for word in set(split_doc) if word not in set_en]
     pt_filter = [word for word in en_filter if word not in set_pt]
+    
+    # For each word append to 
     for word in pt_filter:
-        words_list.append(word.decode('latin-1'))
-    return words_list
+        print word
+
+    #return ' '.join(words_list)
 
 
+# Number of times term t appears in a document 
 def freq(word, doc):
-    return doc.count(word)
+    split_doc = doc.split()
+    return split_doc.count(word)
  
- 
+
+# Total number of terms in the document
 def word_count(doc):
-    return len(doc)
+    split_doc = doc.split()
+    return len(split_doc)
  
- 
+
+# How frequently a term occurs in a document
 def tf(word, doc):
     return (freq(word, doc) / float(word_count(doc)))
  
- 
+
+# Number of documents with term t in it
 def num_docs_containing(word, list_of_docs):
     count = 0
     for document in list_of_docs:
@@ -98,61 +113,55 @@ def num_docs_containing(word, list_of_docs):
             count += 1
     return 1 + count
  
- 
+
+# How important a term is
 def idf(word, list_of_docs):
-    return math.log(len(list_of_docs) /
-            float(num_docs_containing(word, list_of_docs)))
+    return math.log(len(list_of_docs) / 
+                    float(num_docs_containing(word, list_of_docs)))
  
- 
+
+# Tf-idf weight
 def tf_idf(word, doc, list_of_docs):
     return (tf(word, doc) * idf(word, list_of_docs))
- 
-#Compute the frequency for each term.
-vocabulary = []
-docs = {}
-all_tips = []
-for tip in (venue.tips()):
-    tokens = tokenizer.tokenize(tip.text)
- 
-    tokens = [token.lower() for token in tokens if len(token) > 2]
-    tokens = [token for token in tokens if token not in stopwords]
- 
-    bi_tokens = [' '.join(token).lower() for token in bi_tokens]
-    bi_tokens = [token for token in bi_tokens if token not in stopwords]
- 
-    tri_tokens = [' '.join(token).lower() for token in tri_tokens]
-    tri_tokens = [token for token in tri_tokens if token not in stopwords]
- 
-    final_tokens = []
-    final_tokens.extend(tokens)
-    docs[tip.text] = {'freq': {}, 'tf': {}, 'idf': {},
-                        'tf-idf': {}, 'tokens': []}
- 
-    for token in final_tokens:
-        #The frequency computed for each tip
-        docs[tip.text]['freq'][token] = freq(token, final_tokens)
-        #The term-frequency (Normalized Frequency)
-        docs[tip.text]['tf'][token] = tf(token, final_tokens)
-        docs[tip.text]['tokens'] = final_tokens
- 
-    vocabulary.append(final_tokens)
- 
-for doc in docs:
-    for token in docs[doc]['tf']:
-        #The Inverse-Document-Frequency
-        docs[doc]['idf'][token] = idf(token, vocabulary)
-        #The tf-idf
-        docs[doc]['tf-idf'][token] = tf_idf(token, docs[doc]['tokens'], vocabulary)
- 
-#Now let's find out the most relevant words by tf-idf.
-words = {}
-for doc in docs:
-    for token in docs[doc]['tf-idf']:
-        if token not in words:
-            words[token] = docs[doc]['tf-idf'][token]
-        else:
-            if docs[doc]['tf-idf'][token] > words[token]:
+
+
+# Compute the frequency for each term.
+def compute_tfidf(list_of_docs):
+    
+    list_of_docs = []
+    word_counters = {}
+    all_tips = []
+
+    for tip in (venue.tips()):
+        
+        docs[tip.text] = {'freq': {}, 'tf': {}, 'idf': {},
+                            'tf-idf': {}, 'tokens': []}
+     
+        for token in final_tokens:
+            #The frequency computed for each tip
+            docs[tip.text]['freq'][token] = freq(token, final_tokens)
+            #The term-frequency (Normalized Frequency)
+            docs[tip.text]['tf'][token] = tf(token, final_tokens)
+            docs[tip.text]['tokens'] = final_tokens
+     
+        vocabulary.append(final_tokens)
+     
+    for doc in docs:
+        for token in docs[doc]['tf']:
+            #The Inverse-Document-Frequency
+            docs[doc]['idf'][token] = idf(token, vocabulary)
+            #The tf-idf
+            docs[doc]['tf-idf'][token] = tf_idf(token, docs[doc]['tokens'], vocabulary)
+     
+    #Now let's find out the most relevant words by tf-idf.
+    words = {}
+    for doc in docs:
+        for token in docs[doc]['tf-idf']:
+            if token not in words:
                 words[token] = docs[doc]['tf-idf'][token]
- 
-for item in sorted(words.items(), key=lambda x: x[1], reverse=True):
-    print "%f <= %s" % (item[1], item[0])
+            else:
+                if docs[doc]['tf-idf'][token] > words[token]:
+                    words[token] = docs[doc]['tf-idf'][token]
+     
+    for item in sorted(words.items(), key=lambda x: x[1], reverse=True):
+        print "%f <= %s" % (item[1], item[0])

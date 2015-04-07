@@ -1,57 +1,59 @@
-import sys
 from apiclient import errors
 
 
-#token
-page_token = None
-sync_token = None
-# Messages IDs, subjects and dates
-messages_IDs = []
-subjects = []
-dates = []
+# Events IDs, status, dates of creation, summaries, creators, start and end dates
+events_IDs = []
+status = []
+_created = []
+summaries = []
+creators = []
+_start = []
+_end = []
 
 
-def extract_subjects(service):
+def extract_events(service, query, token):
 
     try:
-        # Result from Gmail API call
-        events = service.events().list(calendarId = 'primary', orderBy = 'startTime', pageToken = page_token,
-                                       showDeleted = True, singleEvents= True, syncToken = sync_token,
-                                       fields = 'items(creator(displayName,email),updated,created,summary,location,start,end),nextPageToken,nextSyncToken').execute()
+        # Result from Calendar API call
+        events = service.events().list(calendarId = 'primary', orderBy = 'startTime', pageToken = token,
+                                       q = query, showDeleted = True, singleEvents= True, timeZone = 'Lisbon',
+                                       fields = 'items(creator(displayName),status,created,summary,location,start,end,id),nextPageToken').execute()
+
+
+        # Append data of each event to the correspondent array
         if events != None:
-            # Append the ID of each message to messages_IDs
-            if 'messages' in events:
-                for message in events['messages']:
-                    messages_IDs.append(message['id'])
+            if 'items' in events:
+                for item in events['items']:
+                    # Event ID
+                    events_IDs.append(item['id'])
+                    # Status
+                    status.append(item['status'])
+                    # Creation date
+                    _created.append(item['created'][:10] + ' ' + item['created'][11:-8])
+                    # Summary
+                    summaries.append(item['summary'].encode('utf8'))
+                    # Name of the creator
+                    creators.append(item['creator']['displayName'].encode('utf8'))
+                    
+                    # Start and end dates
+                    if item['start']['dateTime'][-1] == '0' and item['end']['dateTime'][-1] == '0':
+                        _start.append(item['start']['dateTime'][:10] + ' ' + item['start']['dateTime'][11:-9])
+                        _end.append(item['end']['dateTime'][:10] + ' ' + item['end']['dateTime'][11:-9])
+                    else:
+                        _start.append(item['start']['dateTime'][:10] + ' ' + item['start']['dateTime'][11:-4])
+                        _end.append(item['end']['dateTime'][:10] + ' ' + item['end']['dateTime'][11:-4])
 
-            while 'nextPageToken' in events:
+
+            # Call function with page token
+            if 'nextPageToken' in events:
                 token = events['nextPageToken']
+                extract_events(service, query, token)
 
-                # Call function with page token
-                extract_subjects(service, token)
-
-            print messages_IDs
-            
-            for id in messages_IDs:
-                # Result from Gmail API call
-                events = service.users().messages().get(userId = 'me', id = id, format = 'metadata',
-                                                          metadataHeaders = ['From', 'To', 'Subject', 'Date'],
-                                                          fields = 'payload').execute()
-
-                # Append the subject and date of each message to subjects and dates
-                while 'payload' in events:
-                    if 'headers' in events['payload']:
-                        for header in events['payload']['headers']:
-                            if header['name'] == 'Subject':
-                                subjects.append(header['value'].encode('utf-8'))
-                            if header['name'] == 'Date':
-                                dates.append(header['value'])
-
-            print subjects
-            print dates
         else:
-            print "Bad events to Gmail API service."
+            print "Bad request to Calendar API service or there's no events in your Google Calendar."
+            return
+
+        return events_IDs, status, _created, summaries, creators, _start, _end
 
     except errors.HttpError, error:
         print 'An error occurred: %s' % error
-        
