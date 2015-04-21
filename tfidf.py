@@ -88,7 +88,7 @@ def delete_stopwords(doc):
     #return ' '.join(words_list)
 
 
-# Number of times term t appears in a document 
+# Number of times term word appears in a document 
 def freq(word, doc):
     split_doc = doc.split()
     return split_doc.count(word)

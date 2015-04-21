@@ -70,6 +70,8 @@ def main():
     plus_service = build('plus', 'v1', http = http)
 
     while(True):
+
+        #query = 
         #try:
         c_IDs, c_status, c_created, c_summaries, c_creators, c_start, c_end = g_calendar.extract_events(calendar_service, '', '')
 
