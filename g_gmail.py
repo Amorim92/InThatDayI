@@ -13,8 +13,8 @@ def extract_mails(service, query, token):
 
     try:
         # Result from Gmail API call
-        mails = service.users().messages().list(userId = 'me', includeSpamTrash = True, q = query,
-                                                pageToken = token, fields = 'messages(id),nextPageToken').execute()
+        mails = service.users().messages().list(userId = 'me', q = query, pageToken = token,
+                                                fields = 'messages(id),nextPageToken').execute()
 
 
         # Append the ID of each message to messages_IDs
@@ -25,7 +25,7 @@ def extract_mails(service, query, token):
                     messages_IDs.append(message['id'])
 
 
-            # Call function with page page_token
+            # Call function with page token
             if 'nextPageToken' in mails:
                 token = mails['nextPageToken']
                 extract_mails(service, query, token)
@@ -54,33 +54,46 @@ def extract_mails(service, query, token):
                             else:
                                 subjects.append('')
 
-                            # Date
-                            if header['name'] == 'Date':
-                                _dates.append(header['value'][5:-6])
-                            else:
-                                _dates.append('')
-                                #print header['value']
-
                             # From
                             if header['name'] == 'From':
                                 _from.append(header['value'].encode('utf8'))
                             else:
                                 _from.append('')
-                                #print header['value']
 
                             # To
                             if header['name'] == 'To':
                                 _to.append(header['value'].encode('utf8'))
                             else:
                                 _to.append('')
-                                #print header['value']
+
+                            # Date
+                            if header['name'] == 'Date':
+                                if header['value'][6] != ' ':
+                                    _dates.append(header['value'][:22])
+                                else:
+                                    _dates.append(header['value'][:21])
+                            else:
+                                _dates.append('')
 
             else:
                 print "Bad request to Gmail API service or there's no messages in your messages ID's list."
                 return
 
-        return messages_IDs, subjects, _dates, _from, _to
+        print _dates
+        return messages_IDs, subjects, _from, _to, _dates
         
     except errors.HttpError, error:
-        print 'An error occurred: %s' % error
-        
+        print 'An error occurred during mail extraction: %s' % error
+
+
+# Clean function
+def clean():
+    try:
+        # Documents IDs, title, date of creation, creators
+        del messages_IDs[:]
+        del subjects[:]
+        del _from[:]
+        del _to[:]
+        del _dates[:]
+    except errors.HttpError, error:
+        print 'Error cleaning: %s' % error

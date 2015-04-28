@@ -1,58 +1,64 @@
-import sys
 from apiclient import errors
 
 
 # Actors, publications,  and dates
+activities_IDs = []
+publications = []
 actors = []
 urls = []
-pubs = []
-summaries = []
-_start = []
-_end = []
+_created = []
 
 
-def extract_publications(service, token):
+def extract_publications(service, token, before, after):
 
     try:
-        # Result from Gmail API call
-        events = service.events().list(calendarId = 'primary', orderBy = 'startTime', pageToken = token,
-                                       showDeleted = True, singleEvents= True, timeZone = 'Lisbon',
-                                       fields = 'items(creator(displayName),status,created,summary,location,start,end),nextPageToken').execute()
-        if events != None:
-            # Append each event to events
-            if 'items' in events:
-                for item in events['items']:
-                    status.append(item['status'])
-                    _created.append(item['created'][:10] + ' ' + item['created'][11:-8])
-                    summaries.append(item['summary'].lower())
-                    creators.append(item['creator']['displayName'].lower())
-                    
-                    if item['start']['dateTime'][-1] == '0' and item['end']['dateTime'][-1] == '0':
-                        _start.append(item['start']['dateTime'][:10] + ' ' + item['start']['dateTime'][11:-9])
-                        _end.append(item['end']['dateTime'][:10] + ' ' + item['end']['dateTime'][11:-9])
+        # Result from Google+ API call
+        activities = service.activities().list(userId = 'me', collection = 'public', pageToken = token,
+                                               fields = 'items(url,published,object/attachments/displayName,actor/displayName,id),nextPageToken').execute()
+        
+
+        # Append data of each activity to the correspondent array
+        if activities != None:
+            if 'items' in activities:
+                for item in activities['items']:
+                    if after <= item['published'][:10] <= before:
+                        # Activity ID
+                        activities_IDs.append(item['id'])
+                        # Publication text
+                        publications.append(item['object']['attachments'][0]['displayName'].encode('utf8'))
+                        # Actors
+                        actors.append(item['actor']['displayName'].encode('utf8'))
+                        # Url of the publication
+                        urls.append(item['url'])
+                        # Publication date
+                        _created.append(item['published'][:16])
                     else:
-                        _start.append(item['start']['dateTime'][:10] + ' ' + item['start']['dateTime'][11:-4])
-                        _end.append(item['end']['dateTime'][:10] + ' ' + item['end']['dateTime'][11:-4])
+                        continue
 
-            while 'nextPageToken' in events:
-                token = events['nextPageToken']
-
-                # Call function with page token
-                extract_events(service, token)
-
-            #print status
-            #print _created
-            #print summaries
-            #for x in creators:
-            #print creators
-            #print _start
-            #print _end
-
-            return status, _created, summaries, creators, _start, _end
+            # Call function with page token
+            if 'nextPageToken' in activities:
+                token = activities['nextPageToken']
+                extract_publications(service, token, before, after)
 
         else:
-            print "Bad request to Gmail API service."
+            print "Bad request to Google+ API service or there's no publication in your Google+."
+            return
+
+        # print len(activities_IDs), len(publications), len(actors), len(urls), len(_created)
+        return activities_IDs, publications, actors, urls, _created
 
     except errors.HttpError, error:
-        print 'An error occurred: %s' % error
-        
+        print 'An error occurred during publication extraction: %s' % error
+
+
+# Clean function
+def clean():
+    try:
+        # Events IDs, status, dates of creation, summaries, creators, start and end dates
+        del activities_IDs[:]
+        del publications[:]
+        del actors[:]
+        del urls[:]
+        del _created[:]
+    except errors.HttpError, error:
+        print 'Error cleaning: %s' % error
