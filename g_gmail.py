@@ -1,7 +1,7 @@
 from apiclient import errors
 
 
-# Messages IDs, subjects, from, to and sending dates
+# Messages IDs, subjects, from, to and dates
 messages_IDs = []
 subjects = []
 _from = [] 
@@ -48,38 +48,34 @@ def extract_mails(service, query, token):
                 if 'payload' in messages:
                     if 'headers' in messages['payload']:
                         for header in messages['payload']['headers']:
-                            # Subject
+                            # subject
                             if header['name'] == 'Subject':
                                 subjects.append(header['value'].encode('utf8'))
-                            else:
-                                subjects.append('')
 
-                            # From
+                            # from
                             if header['name'] == 'From':
                                 _from.append(header['value'].encode('utf8'))
-                            else:
-                                _from.append('')
 
-                            # To
+                            # to
                             if header['name'] == 'To':
                                 _to.append(header['value'].encode('utf8'))
-                            else:
-                                _to.append('')
 
-                            # Date
+                            # date
                             if header['name'] == 'Date':
-                                if header['value'][6] != ' ':
-                                    _dates.append(header['value'][:22])
+                                if header['value'][1] == ' ':
+                                    _dates.append('0' + header['value'][:16])
+                                elif not header['value'][1].isalpha():
+                                    _dates.append(header['value'][:17])
+                                elif header['value'][0].isalpha() and header['value'][6] == ' ':
+                                    _dates.append('0' + header['value'][5:21])
                                 else:
-                                    _dates.append(header['value'][:21])
-                            else:
-                                _dates.append('')
+                                    _dates.append(header['value'][5:22])
 
             else:
                 print "Bad request to Gmail API service or there's no messages in your messages ID's list."
                 return
 
-        print _dates
+        # print len(messages_IDs), len(subjects), len(_from), len(_to), len(_dates)
         return messages_IDs, subjects, _from, _to, _dates
         
     except errors.HttpError, error:

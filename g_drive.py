@@ -24,9 +24,9 @@ def extract_documents(service, token, before, after):
                         # Document ID
                         documents_IDs.append(item['id'])
                         # Document title
-                        titles.append(item['title'].encode('utf8'))
+                        titles.append(item['title'].lower().encode('utf8'))
                         # Creation date
-                        _created.append(item['createdDate'][:16])
+                        _created.append(item['createdDate'][:16].replace('T',' '))
                         # Name of the owner
                         owners.append(item['owners'][0]['displayName'].encode('utf8'))
                     else:
@@ -42,7 +42,7 @@ def extract_documents(service, token, before, after):
             return
 
         # print len(documents_IDs), len(titles), len(_created), len(owners)
-        return documents_IDs,titles, _created, owners
+        return documents_IDs, titles, owners, _created
 
     except errors.HttpError, error:
         print 'An error occurred during document extraction: %s' % error

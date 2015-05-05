@@ -37,19 +37,19 @@ en_stopwords = ['a','about','above','across','after','afterwards','again','again
 
 
 pt_stopwords = ['a','à','acordo','agora','ainda','além','algumas','alguns','altura','ano','anos',
-                'antes','antónio','ao','aos','apenas','apesar','apoio','após','aqui','área','as',
+                'antes','António','ao','aos','apenas','apesar','apoio','após','aqui','área','as',
                 'às','assim','associação','até','através','banco','bem','cada','câmara','capital',
-                'carlos','casa','caso','causa','cento','centro','cerca','cidade','cinco','com',
+                'Carlos','casa','caso','causa','cento','centro','cerca','cidade','cinco','com',
                 'comissão','como','conselho','conta','contos','contra','cultura','da','dar','das',
                 'de','decisão','depois','desde','desta','deste','dia','dias','direcção','disse','diz',
                 'dizer','do','dois','dos','duas','durante','e','é','economia','ele','eleições','eles',
                 'em','embora','empresa','empresas','enquanto','entanto','então','entre','equipa',
                 'era','essa','esse','esta','está','estado','estados','estão','estar','estava','este',
-                'estes','eu','europa','europeia','exemplo','facto','falta','faz','fazer','fernando',
+                'estes','eu','europa','europeia','exemplo','facto','falta','faz','fazer','Fernando',
                 'fez','fim','final','foi','fora','foram','forma','frente','geral','governo','grande',
                 'grandes','grupo','guerra','há','história','hoje','homem','início','internacional',
-                'isso','isto','já','joão','jogo','jorge','josé','lá','lado','lei','lhe','lisboa',
-                'local','lugar','maior','maioria','mais','manuel','mas','me','meio','melhor','menos',
+                'isso','isto','já','João', 'Joao','jogo','Jorge','José','lá','lado','lei','lhe','lisboa',
+                'local','lugar','maior','maioria','mais','Manuel','mas','me','meio','melhor','menos',
                 'mercado','mês','meses','mesma','mesmo','mil','milhões','ministério','ministro',
                 'momento','muito','muitos','mundo','música','na','nacional','nada','não','nas','nem',
                 'neste','no','noite','nome','nos','nova','novo','num','numa','número','nunca','o',
@@ -61,10 +61,10 @@ pt_stopwords = ['a','à','acordo','agora','ainda','além','algumas','alguns','al
                 'próximo','ps','psd','público','quais','qual','qualquer','quando','quanto','quase',
                 'quatro','que','quem','quer','questão','r.','região','relação','república','são','se',
                 'segunda','segundo','segurança','seis','seja','sem','semana','sempre','sentido','ser',
-                'será','seu','seus','sido','silva','sistema','situação','só','sobre','social','sociedade',
+                'será','seu','seus','sido','Silva','sistema','situação','só','sobre','social','sociedade',
                 'sua','suas','tal','também','tão','tarde','tem','têm','tempo','ter','terá','teve',
                 'tinha','toda','todas','todo','todos','trabalho','três','tudo','último','últimos','um',
-                'uma','vai','vão','ver','vez','vezes','vida','zona'
+                'uma','vai','vão','ver','vez','vezes','vida','zona','-','(',')'
 ]
 
 
@@ -81,11 +81,14 @@ def delete_stopwords(doc):
     en_filter = [word for word in set(split_doc) if word not in set_en]
     pt_filter = [word for word in en_filter if word not in set_pt]
     
-    # For each word append to 
-    for word in pt_filter:
-        print word
+    # For each word append to
+    # f = open('workfile.txt', 'a')
+    # for i in pt_filter:
+    #     f.write(i+'\n')
+    # f.close()
+    # print pt_filter
 
-    #return ' '.join(words_list)
+    return pt_filter
 
 
 # Number of times term word appears in a document 
@@ -128,40 +131,6 @@ def tf_idf(word, doc, list_of_docs):
 # Compute the frequency for each term.
 def compute_tfidf(list_of_docs):
     
-    list_of_docs = []
-    word_counters = {}
-    all_tips = []
-
-    for tip in (venue.tips()):
+    for doc in list_of_docs:
+        doc_filter = delete_stopwords(doc)
         
-        docs[tip.text] = {'freq': {}, 'tf': {}, 'idf': {},
-                            'tf-idf': {}, 'tokens': []}
-     
-        for token in final_tokens:
-            #The frequency computed for each tip
-            docs[tip.text]['freq'][token] = freq(token, final_tokens)
-            #The term-frequency (Normalized Frequency)
-            docs[tip.text]['tf'][token] = tf(token, final_tokens)
-            docs[tip.text]['tokens'] = final_tokens
-     
-        vocabulary.append(final_tokens)
-     
-    for doc in docs:
-        for token in docs[doc]['tf']:
-            #The Inverse-Document-Frequency
-            docs[doc]['idf'][token] = idf(token, vocabulary)
-            #The tf-idf
-            docs[doc]['tf-idf'][token] = tf_idf(token, docs[doc]['tokens'], vocabulary)
-     
-    #Now let's find out the most relevant words by tf-idf.
-    words = {}
-    for doc in docs:
-        for token in docs[doc]['tf-idf']:
-            if token not in words:
-                words[token] = docs[doc]['tf-idf'][token]
-            else:
-                if docs[doc]['tf-idf'][token] > words[token]:
-                    words[token] = docs[doc]['tf-idf'][token]
-     
-    for item in sorted(words.items(), key=lambda x: x[1], reverse=True):
-        print "%f <= %s" % (item[1], item[0])

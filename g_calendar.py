@@ -1,12 +1,12 @@
 from apiclient import errors
 
 
-# Events IDs, status, dates of creation, summaries, creators, start and end dates
+# Events IDs, status, summaries, creators, creation, start and end dates
 events_IDs = []
 status = []
-_created = []
 summaries = []
 creators = []
+_created = []
 _start = []
 _end = []
 
@@ -30,15 +30,14 @@ def extract_events(service, token, before, after):
                         # Status
                         status.append(item['status'])
                         # Creation date
-                        _created.append(item['created'][:10] + ' ' + item['created'][11:-8])
+                        _created.append(item['created'][:16].replace('T', ' '))
                         # Summary
-                        summaries.append(item['summary'].encode('utf8'))
+                        summaries.append(item['summary'].lower().encode('utf8'))
                         # Name of the creator
                         creators.append(item['creator']['displayName'].encode('utf8'))
-                        
                         # Start and end dates
-                        _start.append(item['start']['dateTime'][:10] + ' ' + item['start']['dateTime'][11:16])
-                        _end.append(item['end']['dateTime'][:10] + ' ' + item['start']['dateTime'][11:16])
+                        _start.append(item['start']['dateTime'][:16].replace('T', ' '))
+                        _end.append(item['end']['dateTime'][:16].replace('T', ' '))
                     else:
                         continue
 
@@ -52,7 +51,7 @@ def extract_events(service, token, before, after):
             return
 
         #print len(events_IDs), len(status), len(_created), len(summaries), len(creators), len(_start), len(_end)
-        return events_IDs, status, _created, summaries, creators, _start, _end
+        return events_IDs, status, summaries, creators, _created, _start, _end
     
     except errors.HttpError, error:
         print 'An error occurred during event extraction: %s' % error

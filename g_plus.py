@@ -25,13 +25,13 @@ def extract_publications(service, token, before, after):
                         # Activity ID
                         activities_IDs.append(item['id'])
                         # Publication text
-                        publications.append(item['object']['attachments'][0]['displayName'].encode('utf8'))
+                        publications.append(item['object']['attachments'][0]['displayName'].lower().encode('utf8'))
                         # Actors
                         actors.append(item['actor']['displayName'].encode('utf8'))
                         # Url of the publication
                         urls.append(item['url'])
                         # Publication date
-                        _created.append(item['published'][:16])
+                        _created.append(item['published'][:16].replace('T', ' '))
                     else:
                         continue
 
@@ -41,7 +41,7 @@ def extract_publications(service, token, before, after):
                 extract_publications(service, token, before, after)
 
         else:
-            print "Bad request to Google+ API service or there's no publication in your Google+."
+            print "Bad request to Google+ API service or there's no publications in your Google+."
             return
 
         # print len(activities_IDs), len(publications), len(actors), len(urls), len(_created)
