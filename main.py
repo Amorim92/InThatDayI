@@ -11,7 +11,6 @@ import httplib2
 import time
 import facebook
 
-
 from oauth2client.client import flow_from_clientsecrets
 from apiclient.discovery import build
 from oauth2client.file import Storage
@@ -26,8 +25,8 @@ import g_calendar
 import g_drive
 import g_gmail
 import g_plus
+import mail
 #import twitter
-
 
 
 def main():
@@ -96,7 +95,7 @@ def main():
     before = datetime.datetime(currentYear, currentMonth, monthDays[1]).strftime("%Y-%m-%d")
     after = datetime.datetime(currentYear, currentMonth, 1).strftime("%Y-%m-%d")
 
-    while(True):
+    while(1):
 
         # colocar processos - nao foi possivel devido a chamadas das APIs
         # try:
@@ -105,7 +104,7 @@ def main():
 
 
         # Google Calendar API
-        c_IDs, c_status, c_summaries, c_creators, c_created, c_start, c_end = g_calendar.extract_events(calendar_service, '', before, after)
+        # c_IDs, c_status, c_summaries, c_creators, c_created, c_start, c_end = g_calendar.extract_events(calendar_service, '', before, after)
         # print c_IDs print c_status print c_summaries print c_creators print c_created print c_start print c_end
         # Call TF IDF if we have results
         # if c_summaries:
@@ -118,7 +117,7 @@ def main():
         # Database storage
 
         # To clean the arrays
-        g_calendar.clean()
+        # g_calendar.clean()
        
 
         # for day in c_created:
@@ -151,17 +150,16 @@ def main():
 
         # example query after: yyyy/mm/dd before:2015/1/1 after:2014/12/1
         # Google Gmail API
-        # query = 'before:' + str(before) + ' after:' + str(after)
-        # m_IDs, m_subjects, m_from, m_to, m_dates = g_gmail.extract_mails(gmail_service, query, '')
+        query = 'before:' + str(before) + ' after:' + str(after)
+        m_IDs, m_subjects, m_from, m_to, m_dates = g_gmail.extract_mails(gmail_service, query, '')
 
         # Call TF IDF if we have results
         # if p_publications:
         
         # Database storage
-
+        # print m_IDs
         # To clean the arrays
-        # g_gmail.clean()
-
+        g_gmail.clean()
 
         # Google Plus API
         # p_IDs, p_publications, p_actors, p_urls, p_created = g_plus.extract_publications(plus_service, '', before, after)
@@ -184,7 +182,7 @@ def main():
         if currentMonth - 1 < 1:
             currentMonth = 12
             # Year only goes until 1900, restart year value
-            if currentYear - 1 < 1900:
+            if currentYear - 1 < 1970:
                 now = datetime.datetime.now()
                 currentMonth = now.month
                 currentYear = now.year
@@ -209,6 +207,11 @@ def main():
         # except:
         #     print "Access token expired, wait a moment to refresh it."
         #     exit()
+import cProfile
+import re
+
+cProfile.run('main()','restats')
+
 
 if __name__ == '__main__':
     main()
