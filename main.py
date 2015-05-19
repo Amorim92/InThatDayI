@@ -4,11 +4,9 @@ filelist = [ f for f in os.listdir(".") if f.endswith(".pyc")]
 for f in filelist:
     os.remove(f)
 
-import datetime
-import calendar
+import time, datetime, calendar
 
 import httplib2
-import time
 import facebook
 
 from oauth2client.client import flow_from_clientsecrets
@@ -19,13 +17,10 @@ from oauth2client.tools import run
 from connect_db import connection
 
 # import frontend.server
-#import tfidf
-import face
-import g_calendar
-import g_drive
-import g_gmail
-import g_plus
-import mail
+import tfidf
+import face, g_calendar, g_drive, g_gmail, g_plus
+import imaplib, email, getpass
+# import mail
 #import twitter
 
 
@@ -82,7 +77,10 @@ def main():
     # Authenticate and construct services
     calendar_service = build('calendar', 'v3', http = http)
     drive_service = build('drive', 'v2', http = http)
-    gmail_service = build('gmail', 'v1', http = http)
+    gmail_service = imaplib.IMAP4_SSL('imap.gmail.com')
+    # email = raw_input("Email address: ")
+    # gmail_service.login(email, getpass.getpass())
+    # gmail_service.login('joao.ricardo.amorim.ja@gmail.com', getpass.getpass())
     plus_service = build('plus', 'v1', http = http)
 
 
@@ -104,20 +102,19 @@ def main():
 
 
         # Google Calendar API
-        # c_IDs, c_status, c_summaries, c_creators, c_created, c_start, c_end = g_calendar.extract_events(calendar_service, '', before, after)
+        c_IDs, c_status, c_summaries, c_creators, c_created, c_start, c_end = g_calendar.extract_events(calendar_service, '', before, after)
         # print c_IDs print c_status print c_summaries print c_creators print c_created print c_start print c_end
+        
         # Call TF IDF if we have results
-        # if c_summaries:
-        #     tfidf.compute_tfidf(c_summaries)
-        #     for summary in c_summaries:
-        #         print summary
-        #         tfidf.delete_stopwords(summary)
-
+        if c_summaries:
+            db_insert = tfidf.compute_tfidf(c_summaries)
+            # print db_insert
 
         # Database storage
 
+
         # To clean the arrays
-        # g_calendar.clean()
+        g_calendar.clean()
        
 
         # for day in c_created:
@@ -149,9 +146,9 @@ def main():
 
 
         # example query after: yyyy/mm/dd before:2015/1/1 after:2014/12/1
-        # Google Gmail API
-        query = 'before:' + str(before) + ' after:' + str(after)
-        m_IDs, m_subjects, m_from, m_to, m_dates = g_gmail.extract_mails(gmail_service, query, '')
+        # Google Gmail IMAP
+        # query = 'before:' + str(before) + ' after:' + str(after)
+        # m_IDs, m_subjects, m_from, m_to, m_dates = g_gmail.extract_mails(gmail_service, before, after)
 
         # Call TF IDF if we have results
         # if p_publications:
@@ -159,7 +156,7 @@ def main():
         # Database storage
         # print m_IDs
         # To clean the arrays
-        g_gmail.clean()
+        # g_gmail.clean()
 
         # Google Plus API
         # p_IDs, p_publications, p_actors, p_urls, p_created = g_plus.extract_publications(plus_service, '', before, after)

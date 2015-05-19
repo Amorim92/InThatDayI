@@ -69,16 +69,13 @@ pt_stopwords = ['a','à','acordo','agora','ainda','além','algumas','alguns','al
 
 
 def delete_stopwords(doc):
-    # Split sentences in a list
-    split_doc = doc.split()
-    words_list = []
-
+    print doc
     # Sets because its faster
     set_en = set(en_stopwords)
     set_pt = set(pt_stopwords)
 
     # Filter the list of words
-    en_filter = [word for word in set(split_doc) if word not in set_en]
+    en_filter = [word for word in set(doc) if word not in set_en]
     pt_filter = [word for word in en_filter if word not in set_pt]
     
     # For each word append to
@@ -93,8 +90,7 @@ def delete_stopwords(doc):
 
 # Number of times term word appears in a document 
 def freq(word, doc):
-    split_doc = doc.split()
-    return split_doc.count(word)
+    split_doc = doc.count(word)
  
 
 # Total number of terms in the document
@@ -123,14 +119,20 @@ def idf(word, list_of_docs):
                     float(num_docs_containing(word, list_of_docs)))
  
 
-# Tf-idf weight
+# TF-IDF weight
 def tf_idf(word, doc, list_of_docs):
     return (tf(word, doc) * idf(word, list_of_docs))
 
 
 # Compute the frequency for each term.
 def compute_tfidf(list_of_docs):
+    print list_of_docs
+    # for doc in list_of_docs:
+    #     doc_filter = delete_stopwords(doc)
+    #     print doc_filter
+        # for word in doc_filter:
+        #     tfidf = tf_idf(word, doc_filter, list_of_docs)
+        #     # Dictionary of words and TF-IDF
+        #     tfidf_dict = {word: tfidf}
     
-    for doc in list_of_docs:
-        doc_filter = delete_stopwords(doc)
-        
+    # return tfidf_dict

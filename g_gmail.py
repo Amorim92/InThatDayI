@@ -1,17 +1,34 @@
-from apiclient import errors
+import imaplib, email, getpass, re, datetime
+from email.header import decode_header
 
 
 # Messages IDs, subjects, from, to and dates
-# messages_IDs = []
+messages_IDs = []
 subjects = []
 _from = [] 
 _to = []
 _dates = []
 
 
-def extract_mails(service, query, token):
+def extract_mails(service, before, after):
 
     try:
+        # Select mail label
+        service.select('[Gmail]/All Mail')
+        before = before.strftime("%d-%b-%Y")
+
+        # Search query
+        result, data = mail.uid('search', None, '(SENTSINCE {date})'.format(date=before))
+
+        ids = data[0]
+        id_list = ids.split()
+        for num in id_list:
+            result, data = mail.uid('fetch', num, '(BODY.PEEK[HEADER.FIELDS (subject from to date)])')
+            raw_email = data[0][1]
+            email_message = email.message_from_string(raw_email)
+            
+            tuplo=email_message['To'].replace('"','').replace('\'','').split(' <')
+
         # Messages IDs
         messages_IDs = []
 
