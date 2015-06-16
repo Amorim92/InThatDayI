@@ -17,7 +17,7 @@ def extract_documents(service, token, before, after):
         
 
         # Append data of each document to the correspondent array
-        if documents != None:
+        if documents is not None:
             if 'items' in documents:
                 for item in documents['items']:
                     if after <= item['createdDate'][:10] <= before:
@@ -29,8 +29,6 @@ def extract_documents(service, token, before, after):
                         _created.append(item['createdDate'][:16].replace('T',' '))
                         # Name of the owner
                         owners.append(item['owners'][0]['displayName'].encode('utf8'))
-                    else:
-                        continue
 
             # Call function with page token
             if 'nextPageToken' in documents:

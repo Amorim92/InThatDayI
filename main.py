@@ -7,7 +7,7 @@ for f in filelist:
 import time, datetime, calendar
 
 import httplib2
-import facebook
+# import facebook, requests
 
 from oauth2client.client import flow_from_clientsecrets
 from apiclient.discovery import build
@@ -27,8 +27,8 @@ import imaplib, email, getpass
 def main():
 
 # GOOGLE CONNECTION
-    # Manage database
-    totalCount_db, pcUser_db, calendar_db, drive_db, gmail_db, plus_db, lastFm_db, twitter_db, facebook_db = connection()
+    # Manage collections
+    total_db, terms_m_db, terms_y_db, people_db, dates_db = connection()
 
     # Path to client_secret file
     CLIENT_SECRET_FILE = 'C:\client_secret.json'
@@ -59,19 +59,19 @@ def main():
     # Authorize the httplib2.Http object with our credentials
     http = credentials.authorize(http)
 
-    print credentials.to_json()
+    # print credentials.to_json()
 
 #  FACEBOOK CONNECTION
-    FB_TOKEN = 'CAAE2UVnAT0wBAMrfbuY2GVCeLUqebZCx7Vdj4v1LoEMpsV3kM9dTZAVJdN93pns5uISdvHMtXPfOOZAQd8jbIc1mTCFQOmoOJgTeMsKe7Ht2ey8uVcANUpCMfzf7jZAVPiwZBtRDcgSMZAl3elcvBeCNZCxQRjmaxZBi9C98JrI2HhJx2G4Oc86gDNyI6E8dctqDZBl1ewHZBgkBxqUNRxWHmX'
-    FB_APP_ID = '341198002736972'
-    FB_APP_SECRET = '027d3227a23c2798ef005d2b407febf1'
+    # FB_TOKEN = 'CAAE2UVnAT0wBAJ7T4wT2dYm1j5ZBQx5UZBcWqvWHtrc2pzED0YHkYHjZA4mr0PXXigVOg8HerZAAniChT9TgDrh4NZCtnUvW0QbWQE1dtQUw6ZAXmMBXy7MaMHagtXPZAe5oRLoMFiJhlhtmeTrsmJa68ow5dHdfDw3v10cEvOQDwNmqDscdfACP384BfMoz9c5dSOsapNZBm3F244QZAen03'
+    # FB_APP_ID = '341198002736972'
+    # FB_APP_SECRET = '027d3227a23c2798ef005d2b407febf1'
 
-    # Use Facebook Graph API
-    facebook_service = facebook.GraphAPI(FB_TOKEN)
-    # Convert short live token to long live token
-    token = facebook_service.extend_access_token(app_id = FB_APP_ID,
-                                      app_secret = FB_APP_SECRET)['access_token']
-    facebook_service.access_token = token
+    # # Use Facebook Graph API
+    # facebook_service = facebook.GraphAPI(FB_TOKEN)
+    # # Convert short live token to long live token
+    # token = facebook_service.extend_access_token(app_id = FB_APP_ID,
+    #                                              app_secret = FB_APP_SECRET)['access_token']
+    # facebook_service.access_token = token
     
 
     # Authenticate and construct services
@@ -93,7 +93,11 @@ def main():
     before = datetime.datetime(currentYear, currentMonth, monthDays[1]).strftime("%Y-%m-%d")
     after = datetime.datetime(currentYear, currentMonth, 1).strftime("%Y-%m-%d")
 
+    calendar_year = {'c_IDs': [], 'c_status': [], 'c_summaries': [], 'c_creators': [],
+                      'c_created': [], 'c_start': [], 'c_end': []}
+
     while(1):
+
 
         # colocar processos - nao foi possivel devido a chamadas das APIs
         # try:
@@ -103,15 +107,33 @@ def main():
 
         # Google Calendar API
         c_IDs, c_status, c_summaries, c_creators, c_created, c_start, c_end = g_calendar.extract_events(calendar_service, '', before, after)
+
         # print c_IDs print c_status print c_summaries print c_creators print c_created print c_start print c_end
         
-        # Call TF IDF if we have results
+        # Call monthly TF-IDF
         if c_summaries:
-            db_insert = tfidf.compute_tfidf(c_summaries)
-            # print db_insert
+            calendar_insert_m = tfidf.compute_tfidf(c_summaries, 'Google Calendar', c_IDs, c_creators, c_created,
+                                                    status = c_status, start = c_start, end = c_end)
+            # print calendar_insert
 
-        # Database storage
+            # Save data to call yearly TF-IDF
+            calendar_year['c_IDs'].extend(c_IDs)
+            calendar_year['c_status'].extend(c_status)
+            calendar_year['c_summaries'].extend(c_summaries)
+            calendar_year['c_creators'].extend(c_creators)
+            calendar_year['c_created'].extend(c_created)
+            calendar_year['c_start'].extend(c_start)
+            calendar_year['c_end'].extend(c_end)
+            # print calendar_year
 
+            # Database storage
+            for key in calendar_insert_m.keys():
+                terms_m_db.update(calendar_insert_m[key])
+            print terms_m_db.count()
+            print '================================================' 
+            # insert_many([{'x': i} for i in range(2)], True)
+
+            # terms_m_db, terms_y_db, people_db, dates_db
 
         # To clean the arrays
         g_calendar.clean()
@@ -128,9 +150,15 @@ def main():
 
         # Google Drive API
         # d_IDs, d_titles, d_owners, d_created = g_drive.extract_documents(drive_service, '', before, after)
-        # print d_IDs print d_titles print d_owners print d_created
-        # Call TF IDF if we have results
+        # print d_IDs
+        # print d_titles
+        # print d_owners
+        # print d_created
+        
+        # Call daily TF-IDF
         # if d_titles:
+        #     drive_insert = tfidf.compute_tfidf(d_titles, 'Google Drive', d_IDs, d_owners, d_created)
+            # print drive_insert
         
         # Database storage
         # To clean the arrays
@@ -177,9 +205,18 @@ def main():
 
         # Recalculate month and year
         if currentMonth - 1 < 1:
+
+            # Call yearly TF-IDF
+            if calendar_year['c_summaries']:
+                calendar_insert_y = tfidf.compute_tfidf(calendar_year['c_summaries'], 'Google Calendar', calendar_year['c_IDs'],
+                                                        calendar_year['c_creators'], calendar_year['c_created'], status=calendar_year['c_status'],
+                                                        start=calendar_year['c_start'], end=calendar_year['c_end'])
+                # print c
+            
             currentMonth = 12
-            # Year only goes until 1900, restart year value
-            if currentYear - 1 < 1970:
+                
+            # Year only goes until 1990, restart year value
+            if currentYear - 1 < 1990:
                 now = datetime.datetime.now()
                 currentMonth = now.month
                 currentYear = now.year
@@ -190,6 +227,9 @@ def main():
                 currentYear -= 1
                 monthDays = calendar.monthrange(currentYear, currentMonth)
         else:
+            
+
+
             currentMonth -= 1
             monthDays = calendar.monthrange(currentYear, currentMonth)
         
@@ -204,10 +244,12 @@ def main():
         # except:
         #     print "Access token expired, wait a moment to refresh it."
         #     exit()
-import cProfile
-import re
 
-cProfile.run('main()','restats')
+
+# import cProfile
+# import re
+
+# cProfile.run('main()','restats')
 
 
 if __name__ == '__main__':

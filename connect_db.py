@@ -13,16 +13,10 @@ def connection():
 
     # Collections creation
     totalCount = db.create_collection('counters')
-    pcUser = db.create_collection('user')
+    terms_month = db.create_collection('terms_month')
+    terms_year = db.create_collection('terms_year')
+    people = db.create_collection('people')
+    dates = db.create_collection('dates')
 
-    # Collections to Google APIs
-    calendar = db.create_collection('calendar')
-    drive = db.create_collection('drive')
-    gmail = db.create_collection('gmail')
-    plus = db.create_collection('plus')
 
-    lastFm = db.create_collection('lastFm')
-    twitter = db.create_collection('twitter')
-    facebook = db.create_collection('facebook')
-
-    return totalCount, pcUser, calendar, drive, gmail, plus, lastFm, twitter, facebook
+    return totalCount, terms_month, terms_year, people, dates

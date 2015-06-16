@@ -28,7 +28,7 @@ def extract_events(service, token, before, after):
                         # Event ID
                         events_IDs.append(item['id'])
                         # Status
-                        status.append(item['status'])
+                        status.append(item['status'].lower())
                         # Creation date
                         _created.append(item['created'][:16].replace('T', ' '))
                         # Summary
@@ -38,8 +38,6 @@ def extract_events(service, token, before, after):
                         # Start and end dates
                         _start.append(item['start']['dateTime'][:16].replace('T', ' '))
                         _end.append(item['end']['dateTime'][:16].replace('T', ' '))
-                    else:
-                        continue
 
             # Call function with page token
             if 'nextPageToken' in events:
