@@ -21,7 +21,7 @@ def extract_events(service, token, before, after):
 
 
         # Append data of each event to the correspondent array
-        if events != None:
+        if events is not None:
             if 'items' in events:
                 for item in events['items']:
                     if after <= item['created'][:10] <= before:
@@ -29,12 +29,12 @@ def extract_events(service, token, before, after):
                         events_IDs.append(item['id'])
                         # Status
                         status.append(item['status'].lower())
-                        # Creation date
-                        _created.append(item['created'][:16].replace('T', ' '))
                         # Summary
                         summaries.append(item['summary'].lower().encode('utf8'))
                         # Name of the creator
                         creators.append(item['creator']['displayName'].encode('utf8'))
+                        # Creation date
+                        _created.append(item['created'][:16].replace('T', ' '))
                         # Start and end dates
                         _start.append(item['start']['dateTime'][:16].replace('T', ' '))
                         _end.append(item['end']['dateTime'][:16].replace('T', ' '))

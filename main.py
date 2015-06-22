@@ -28,7 +28,7 @@ def main():
 
 # GOOGLE CONNECTION
     # Manage collections
-    total_db, terms_m_db, terms_y_db, people_db, dates_db = connection()
+    total_db, terms_day_db, terms_week_db, terms_month_db, terms_year_db, people_db, dates_db = connection()
 
     # Path to client_secret file
     CLIENT_SECRET_FILE = 'C:\client_secret.json'
@@ -61,7 +61,7 @@ def main():
 
     # print credentials.to_json()
 
-#  FACEBOOK CONNECTION
+# FACEBOOK CONNECTION - not working because token expired and cannot be refreshed since it's a desktop app
     # FB_TOKEN = 'CAAE2UVnAT0wBAJ7T4wT2dYm1j5ZBQx5UZBcWqvWHtrc2pzED0YHkYHjZA4mr0PXXigVOg8HerZAAniChT9TgDrh4NZCtnUvW0QbWQE1dtQUw6ZAXmMBXy7MaMHagtXPZAe5oRLoMFiJhlhtmeTrsmJa68ow5dHdfDw3v10cEvOQDwNmqDscdfACP384BfMoz9c5dSOsapNZBm3F244QZAen03'
     # FB_APP_ID = '341198002736972'
     # FB_APP_SECRET = '027d3227a23c2798ef005d2b407febf1'
@@ -93,6 +93,10 @@ def main():
     before = datetime.datetime(currentYear, currentMonth, monthDays[1]).strftime("%Y-%m-%d")
     after = datetime.datetime(currentYear, currentMonth, 1).strftime("%Y-%m-%d")
 
+    # calendar_week = {'c_IDs': [], 'c_status': [], 'c_summaries': [], 'c_creators': [],
+    #                  'c_created': [], 'c_start': [], 'c_end': []}
+
+    # Year dictionaries
     calendar_year = {'c_IDs': [], 'c_status': [], 'c_summaries': [], 'c_creators': [],
                       'c_created': [], 'c_start': [], 'c_end': []}
 
@@ -109,12 +113,8 @@ def main():
         c_IDs, c_status, c_summaries, c_creators, c_created, c_start, c_end = g_calendar.extract_events(calendar_service, '', before, after)
 
         # print c_IDs print c_status print c_summaries print c_creators print c_created print c_start print c_end
-        
-        # Call monthly TF-IDF
+
         if c_summaries:
-            calendar_insert_m = tfidf.compute_tfidf(c_summaries, 'Google Calendar', c_IDs, c_creators, c_created,
-                                                    status = c_status, start = c_start, end = c_end)
-            # print calendar_insert
 
             # Save data to call yearly TF-IDF
             calendar_year['c_IDs'].extend(c_IDs)
@@ -126,11 +126,78 @@ def main():
             calendar_year['c_end'].extend(c_end)
             # print calendar_year
 
+
+            # Call daily TF-IDF
+            for currentDay in range(monthDays[1], 0, -1):
+                
+                calendar_day = {'c_IDs': [], 'c_status': [], 'c_summaries': [], 'c_creators': [],
+                                'c_created': [], 'c_start': [], 'c_end': []}
+
+                daily_date = datetime.datetime(currentYear, currentMonth, currentDay)
+
+                day_of_week = daily_date.weekday()
+                # print day_of_week
+                delta_start = datetime.timedelta(days = day_of_week)
+                week_start = daily_date - delta_start
+
+                delta_end = datetime.timedelta(days = 6 - day_of_week)
+                week_end = daily_date + delta_end
+
+                # print beginning_of_week
+                # print type(week_end)
+                print daily_date
+
+                for date in c_created:
+
+                    if date[:10] == daily_date.strftime("%Y-%m-%d"):
+
+                        c_index = c_created.index(date)
+
+                        calendar_day['c_IDs'].append(c_IDs.pop(c_index))
+                        calendar_day['c_status'].append(c_status.pop(c_index))
+                        calendar_day['c_summaries'].append(c_summaries.pop(c_index))
+                        calendar_day['c_creators'].append(c_creators.pop(c_index))
+                        calendar_day['c_created'].append(c_created.pop(c_index))
+                        calendar_day['c_start'].append(c_start.pop(c_index))
+                        calendar_day['c_end'].append(c_end.pop(c_index))
+
+                    if week_start.strftime("%Y-%m-%d") < date and date < week_end.strftime("%Y-%m-%d"):
+                        print 'hello++++++++++++++++++++++'
+                        print date
+                        print 'hello++++++++++++++++++++++'
+
+                    else:
+                        continue
+
+                # print calendar_day
+
+                if calendar_day['c_summaries'] is not None:
+                    calendar_daily = tfidf.compute_tfidf(calendar_day['c_summaries'], 'Google Calendar', calendar_day['c_IDs'],
+                                                         calendar_day['c_creators'], calendar_day['c_created'], status=calendar_day['c_status'],
+                                                         start=calendar_day['c_start'], end=calendar_day['c_end'])
+
+
+                    # print calendar_daily
+
+                    #     if currentDay + 1 > monthDays[1]:
+                    #         currentDay = 1
+                    #         break
+                    #     else:
+                    #         daily_date = datetime.datetime(currentYear, currentMonth, currentDay + 1).strftime("%Y-%m-%d")
+
+
+
+            # Call monthly TF-IDF
+            # calendar_insert_m = tfidf.compute_tfidf(c_summaries, 'Google Calendar', c_IDs, c_creators, c_created,
+            #                                         status = c_status, start = c_start, end = c_end)
+            # print calendar_insert
+
+
             # Database storage
-            for key in calendar_insert_m.keys():
-                terms_m_db.update(calendar_insert_m[key])
-            print terms_m_db.count()
-            print '================================================' 
+            # for key in calendar_insert_m.keys():
+            #     terms_m_db.insert(calendar_insert_m[key])
+            # print terms_m_db.count()
+            # print '================================================' 
             # insert_many([{'x': i} for i in range(2)], True)
 
             # terms_m_db, terms_y_db, people_db, dates_db
@@ -207,10 +274,10 @@ def main():
         if currentMonth - 1 < 1:
 
             # Call yearly TF-IDF
-            if calendar_year['c_summaries']:
-                calendar_insert_y = tfidf.compute_tfidf(calendar_year['c_summaries'], 'Google Calendar', calendar_year['c_IDs'],
-                                                        calendar_year['c_creators'], calendar_year['c_created'], status=calendar_year['c_status'],
-                                                        start=calendar_year['c_start'], end=calendar_year['c_end'])
+            # if calendar_year['c_summaries']:
+            #     calendar_insert_y = tfidf.compute_tfidf(calendar_year['c_summaries'], 'Google Calendar', calendar_year['c_IDs'],
+            #                                             calendar_year['c_creators'], calendar_year['c_created'], status=calendar_year['c_status'],
+            #                                             start=calendar_year['c_start'], end=calendar_year['c_end'])
                 # print c
             
             currentMonth = 12
@@ -227,9 +294,6 @@ def main():
                 currentYear -= 1
                 monthDays = calendar.monthrange(currentYear, currentMonth)
         else:
-            
-
-
             currentMonth -= 1
             monthDays = calendar.monthrange(currentYear, currentMonth)
         

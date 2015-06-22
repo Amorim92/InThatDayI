@@ -13,10 +13,12 @@ def connection():
 
     # Collections creation
     totalCount = db.create_collection('counters')
+    terms_day = db.create_collection('terms_day')
+    terms_week = db.create_collection('terms_week')
     terms_month = db.create_collection('terms_month')
     terms_year = db.create_collection('terms_year')
     people = db.create_collection('people')
     dates = db.create_collection('dates')
 
 
-    return totalCount, terms_month, terms_year, people, dates
+    return totalCount, terms_day, terms_week, terms_month, terms_year, people, dates

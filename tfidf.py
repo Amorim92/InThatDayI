@@ -189,10 +189,23 @@ def compute_tfidf(list_of_docs, source, ids, creators, dates, status = [], start
                     tfidf_dict[word.encode('utf8')]['TF-IDF'] = (tfidf_dict[word.encode('utf8')]['TF-IDF'] + tfidf) / 2
                     tfidf_dict[word.encode('utf8')]['Importance'] = (tfidf_dict[word.encode('utf8')]['Importance'] + term_imp) / 2
                     tfidf_dict[word.encode('utf8')]['Frequency'] = (tfidf_dict[word.encode('utf8')]['Frequency'] + term_freq) / 2
-                    tfidf_dict[word.encode('utf8')]['Related Terms'].update(set_related_terms)
+                    tfidf_dict[word.encode('utf8')]['Related Terms'] = list(set(tfidf_dict[word.encode('utf8')]['Related Terms'] + list(set_related_terms)))
                 else:
                     tfidf_dict[word.encode('utf8')] = {'Source': source, 'Id': [id], 'Creator': [creator], 'Date': [date], 'TF-IDF': tfidf,
-                                                       'Importance': term_imp, 'Frequency': term_freq, 'Related Terms': set_related_terms}
+                                                       'Importance': term_imp, 'Frequency': term_freq, 'Related Terms': list(set_related_terms)}
 
-    print tfidf_dict
+            # if source == 'Google Drive':
+            #     if tfidf_dict.has_key(word.encode('utf8')):
+            #         tfidf_dict[word.encode('utf8')]['Id'].append(id)
+            #         tfidf_dict[word.encode('utf8')]['Creator'].append(creator)
+            #         tfidf_dict[word.encode('utf8')]['Date'].append(date)
+            #         tfidf_dict[word.encode('utf8')]['TF-IDF'] = (tfidf_dict[word.encode('utf8')]['TF-IDF'] + tfidf) / 2
+            #         tfidf_dict[word.encode('utf8')]['Importance'] = (tfidf_dict[word.encode('utf8')]['Importance'] + term_imp) / 2
+            #         tfidf_dict[word.encode('utf8')]['Frequency'] = (tfidf_dict[word.encode('utf8')]['Frequency'] + term_freq) / 2
+            #         tfidf_dict[word.encode('utf8')]['Related Terms'] = list(set(tfidf_dict[word.encode('utf8')]['Related Terms'] + list(set_related_terms)))
+            #     else:
+            #         tfidf_dict[word.encode('utf8')] = {'Source': source, 'Id': [id], 'Creator': [creator], 'Date': [date], 'TF-IDF': tfidf,
+            #                                            'Importance': term_imp, 'Frequency': term_freq, 'Related Terms': list(set_related_terms)}
+
+    # print tfidf_dict
     return tfidf_dict
