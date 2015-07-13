@@ -22,12 +22,13 @@ def extract_mails(service, before, after):
 
         ids = data[0]
         id_list = ids.split()
+
         for num in id_list:
             result, data = mail.uid('fetch', num, '(BODY.PEEK[HEADER.FIELDS (subject from to date)])')
             raw_email = data[0][1]
             email_message = email.message_from_string(raw_email)
             
-            tuplo=email_message['To'].replace('"','').replace('\'','').split(' <')
+            tuplo = email_message['To'].replace('"','').replace('\'','').split(' <')
 
         # Messages IDs
         messages_IDs = []

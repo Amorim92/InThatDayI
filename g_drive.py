@@ -20,7 +20,7 @@ def extract_documents(service, token, before, after):
         if documents is not None:
             if 'items' in documents:
                 for item in documents['items']:
-                    if after <= item['createdDate'][:10] <= before:
+                    if after <= item['createdDate'] <= before:
                         # Document ID
                         documents_IDs.append(item['id'])
                         # Document title

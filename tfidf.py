@@ -194,7 +194,7 @@ def compute_tfidf(list_of_docs, source, ids, creators, dates, status = [], start
                     tfidf_dict[word.encode('utf8')] = {'Source': source, 'Id': [id], 'Creator': [creator], 'Date': [date], 'TF-IDF': tfidf,
                                                        'Importance': term_imp, 'Frequency': term_freq, 'Related Terms': list(set_related_terms)}
 
-            # if source == 'Google Drive':
+            # if source == 'Google Plus':
             #     if tfidf_dict.has_key(word.encode('utf8')):
             #         tfidf_dict[word.encode('utf8')]['Id'].append(id)
             #         tfidf_dict[word.encode('utf8')]['Creator'].append(creator)

@@ -21,7 +21,7 @@ def extract_publications(service, token, before, after):
         if activities is not None:
             if 'items' in activities:
                 for item in activities['items']:
-                    if after <= item['published'][:10] <= before:
+                    if after <= item['published'] <= before:
                         # Activity ID
                         activities_IDs.append(item['id'])
                         # Publication text

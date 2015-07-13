@@ -16,7 +16,7 @@ def extract_events(service, token, before, after):
     try:
         # Result from Calendar API call
         events = service.events().list(calendarId = 'primary', orderBy = 'startTime', pageToken = token,
-                                       showDeleted = True, singleEvents= True, timeZone = 'Lisbon',
+                                       showDeleted = True, singleEvents= True, timeMin = after,
                                        fields = 'items(creator(displayName),status,created,summary,location,start,end,id),nextPageToken').execute()
 
 
@@ -24,7 +24,7 @@ def extract_events(service, token, before, after):
         if events is not None:
             if 'items' in events:
                 for item in events['items']:
-                    if after <= item['created'][:10] <= before:
+                    if item['created'] <= before:
                         # Event ID
                         events_IDs.append(item['id'])
                         # Status
